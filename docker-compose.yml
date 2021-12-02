@@ -1,0 +1,19 @@
+version: '3.3'
+services:
+  composer:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    entrypoint: composer
+    volumes:
+      - .:/project
+    restart: on-failure
+    tty: true
+    stdin_open: true
+  console:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    entrypoint: php
+    volumes:
+      - .:/project
