@@ -27,11 +27,10 @@ class Day2 extends AbstractDay
             array_filter($array, static fn ($item) => in_array($item[0], ["up", "down"])),
             static function ($carry, $item) {
 
-                $result = match (true) {
+                return match (true) {
                     $item[0] === "up" => $carry -= (int) $item[1],
                     $item[0] === "down" => $carry += (int) $item[1],
                 };
-                return $result;
             }
         );
 
