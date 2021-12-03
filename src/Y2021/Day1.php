@@ -3,9 +3,9 @@
 namespace marvellanius\Advent\Y2021;
 
 use marvellanius\Advent\Answer;
-use marvellanius\Advent\Day;
+use marvellanius\Advent\AbstractDay;
 
-final class Day1 extends Day
+final class Day1 extends AbstractDay
 {
     public function run1(): Answer
     {

@@ -35,23 +35,25 @@ class DownloadInputCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $helper = $this->getHelper('question');
+        $projectRoot = dirname(__DIR__, 2);
+
+        $resourceDir = "{$projectRoot}/resources";
 
         // If input isn't equal to the default, check if it's a valid input (int, between range, etc)
         if ( $input->getOption(self::OPTION_YEAR) !== $this->currentYear && ! preg_match("/^(20)\d{2}$/", $input->getOption(self::OPTION_YEAR))) {
-            $question = new Question("Please input a year (between 2000-{$this->currentYear}, default: {$this->currentYear}): ", $this->currentYear);
+            $question = new Question("<question>Please input a year (between 2000-{$this->currentYear}, default: {$this->currentYear}): </question>", $this->currentYear);
             $input->setOption(self::OPTION_YEAR, (int)$helper->ask($input, $output, $question));
         }
 
         if ( $input->getOption(self::OPTION_DAY) !== $this->currentDay && ! preg_match("/^([1-9]|1[\d]|2[0-5])$/", $input->getOption(self::OPTION_DAY))) {
-            $question = new Question("Please input a day (between 1-{$this->currentDay}, default: {$this->currentDay}): ", $this->currentDay);
+            $question = new Question("<question>Please input a day (between 1-{$this->currentDay}, default: {$this->currentDay}): </question>", $this->currentDay);
             $input->setOption(self::OPTION_DAY, (int)$helper->ask($input, $output, $question));
         }
 
-        $resourceDir = dirname(__DIR__) . "/../resources";
         $year = (int)$input->getOption(self::OPTION_YEAR);
         $day = (int)$input->getOption(self::OPTION_DAY);
 
-        $output->writeln("Downloading Advent of Code input file for event {$year}, day {$day}");
+        $output->writeln("<info>Downloading Advent of Code input file for event {$year}, day {$day}</info>");
 
         $filename = "{$resourceDir}/Y{$year}/Day{$day}.txt";
 
@@ -63,7 +65,7 @@ class DownloadInputCommand extends Command
             }
 
             // Load env variables (currently only used for SESSION_KEY
-            (new Dotenv())->load(dirname(__DIR__) . '/../.env');
+            (new Dotenv())->load("{$projectRoot}/.env");
 
             $options = [
                 "http" => [

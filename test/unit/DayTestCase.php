@@ -33,6 +33,6 @@ abstract class DayTestCase extends TestCase
 
     }
 
-    abstract protected function getDay(): Day;
+    abstract protected function getDay(): AbstractDay;
     abstract protected function getExpectedAnswerForAssignment(int $assignment): Answer;
 }

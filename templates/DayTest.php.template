@@ -1,0 +1,26 @@
+<?php
+declare(strict_types=1);
+
+namespace marvellanius\Advent\Y<YEAR_PLACEHOLDER>;
+
+use marvellanius\Advent\Answer;
+use marvellanius\Advent\AbstractDay;
+use marvellanius\Advent\DayTestCase;
+
+final class Day<DAY_PLACEHOLDER>Test extends DayTestCase
+{
+    protected function getDay(): AbstractDay
+    {
+        $day = new Day<DAY_PLACEHOLDER>();
+        $day->setInput(dirname(__DIR__, 3) . "/resources/Y<YEAR_PLACEHOLDER>/Day<DAY_PLACEHOLDER>-test.txt");
+        return $day;
+    }
+
+    protected function getExpectedAnswerForAssignment(int $assignment): Answer
+    {
+        return match($assignment) {
+            1 => new Answer("Get the expected answer for assignment 1 from https://adventofcode.com"),
+            2 => new Answer("Get the expected answer for assignment 2 from https://adventofcode.com")
+        };
+    }
+}

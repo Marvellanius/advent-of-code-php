@@ -1,0 +1,20 @@
+<?php
+declare(strict_types=1);
+
+namespace marvellanius\Advent\Y<YEAR_PLACEHOLDER>;
+
+use marvellanius\Advent\Answer;
+use marvellanius\Advent\AbstractDay;
+
+final class Day<DAY_PLACEHOLDER> extends AbstractDay
+{
+    public function run1(): Answer
+    {
+        return new Answer("Not implemented");
+    }
+
+    public function run2(): Answer
+    {
+        return new Answer("Not implemented");
+    }
+}

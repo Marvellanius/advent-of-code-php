@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Dick van Viegen <dick@tweakers.net>
  */
-abstract class Day implements DayInterface
+abstract class AbstractDay implements DayInterface
 {
     private string $file;
 

@@ -43,7 +43,7 @@ final class AssignmentCommand extends Command
         $selectedYear = $input->getOption(self::OPTION_YEAR);
 
         if ( ! in_array($selectedYear, $this->yearOptions, true)) {
-            $question = new ChoiceQuestion("Please select the year from which to run an assignment (default: {$this->yearOptions[0]})", $this->yearOptions, 0);
+            $question = new ChoiceQuestion("<question>Please select the year from which to run an assignment (default: {$this->yearOptions[0]})</question>", $this->yearOptions, 0);
             $selectedYear = $helper->ask($input, $output, $question);
         }
 
@@ -51,12 +51,12 @@ final class AssignmentCommand extends Command
 
         $selectedDay = $input->getOption(self::OPTION_DAY);
         if ( ! in_array($selectedDay, $this->dayOptions[$selectedYear], true)) {
-            $question = new ChoiceQuestion("Please select the day to run the assignments for (default: {$this->dayOptions[$selectedYear][0]})", $this->dayOptions[$selectedYear], 0);
+            $question = new ChoiceQuestion("<question>Please select the day to run the assignments for (default: {$this->dayOptions[$selectedYear][0]})</question>", $this->dayOptions[$selectedYear], 0);
             $selectedDay = basename($helper->ask($input, $output, $question), '.php');
         }
 
 
-        $resourceDir = dirname(__DIR__) . "/../resources/Y{$selectedYear}";
+        $resourceDir = dirname(__DIR__, 2) . "/resources/Y{$selectedYear}";
         $class = "marvellanius\\Advent\\Y{$selectedYear}\\Day{$selectedDay}";
         $day = new $class();
 
@@ -66,7 +66,7 @@ final class AssignmentCommand extends Command
         }
 
         $assignment = 0;
-        $output->writeln("Running: Y{$selectedYear}/Day{$selectedDay}");
+        $output->writeln("<info>Running assignments for: Y{$selectedYear}/Day{$selectedDay}</info>");
 
         $day->run($output, $assignment);
 

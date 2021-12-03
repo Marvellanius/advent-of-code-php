@@ -4,13 +4,12 @@ declare(strict_types=1);
 namespace marvellanius\Advent\Y2021;
 
 use marvellanius\Advent\Answer;
-use marvellanius\Advent\Day;
-use phpDocumentor\Reflection\Types\Callable_;
+use marvellanius\Advent\AbstractDay;
 
 /**
  * @author Dick van Viegen <dick@tweakers.net>
  */
-class Day3 extends Day
+class Day3 extends AbstractDay
 {
     public function run1(): Answer
     {
