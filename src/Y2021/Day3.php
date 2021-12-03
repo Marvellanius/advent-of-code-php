@@ -59,7 +59,7 @@ class Day3 extends Day
             }
         }
 
-        return array_map(static fn ($v) => array_count_values($v), $positionArray);;
+        return array_map(static fn ($v) => array_count_values($v), $positionArray);
     }
 
     private function determineMostCommonValue(array $array): int

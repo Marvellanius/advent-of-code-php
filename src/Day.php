@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace marvellanius\Advent;
 
+use Error;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -47,7 +48,7 @@ abstract class Day implements DayInterface
             }
             fclose($file);
         } else {
-            throw new \Error("File could not be opened");
+            throw new Error("File could not be opened");
         }
         return $array;
     }

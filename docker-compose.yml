@@ -14,6 +14,11 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
-    entrypoint: php
+    entrypoint: php src/console.php
+    environment:
+      PHP_EXTENSION_DEBUG: 1
+      PHP_INI_XDEBUG__REMOTE_PORT: 9000
+      PHP_IDE_CONFIG: "serverName=advent-of-code_console"
+      XDEBUG_CONFIG: "remote_port=9000 remote_autostart=1"
     volumes:
       - .:/project
