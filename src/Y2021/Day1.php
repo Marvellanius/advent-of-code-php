@@ -30,7 +30,7 @@ final class Day1 extends AbstractDay
         return new Answer($this->getComparisonSuccessCount($arrayOfSums, 'isGreaterThanPrevious'));
     }
 
-    private function getComparisonSuccessCount(array $array, string $callback)
+    private function getComparisonSuccessCount(array $array, string $callback): int
     {
         $count = 0;
         foreach ($array as $key => $value) {
