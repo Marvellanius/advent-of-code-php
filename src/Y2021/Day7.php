@@ -34,8 +34,7 @@ final class Day7 extends AbstractDay
             $fuel = [];
             foreach($positions as $crab) {
                 if ($fuelCostIncreases) {
-                    $fuel[] = ($position - $crab) * (0.5*($position - $crab) + 0.5);
-//                    $fuel[] = array_sum(range(0, abs($position - $crab)));
+                    $fuel[] = (int) (abs($position - $crab) * (0.5 * abs($position - $crab) + 0.5));
                 } else {
                     $fuel[] = abs($position - $crab);
                 }
