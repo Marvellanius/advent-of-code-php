@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace marvellanius\Advent\Command;
 
+use DateTime;
+use DateTimeZone;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -65,10 +67,20 @@ final class AssignmentCommand extends Command
             $day->setInput("{$resourceDir}/Day{$selectedDay}-test.txt");
         }
 
-        $assignment = 0;
+        $assignment = $input->getOption(self::OPTION_ASSIGNMENT) ?? 0;
+
         $output->writeln("<info>Running assignments for: Y{$selectedYear}/Day{$selectedDay}</info>");
 
-        $day->run($output, $assignment);
+        $tz = new DateTimeZone("Europe/Amsterdam");
+        $startTime = new DateTime(timezone: $tz);
+        $output->writeln("<fg=cyan>{$startTime->format("Y-m-d H:i:s")}: Running: Y{$selectedYear} Day{$selectedDay}</>");
+
+        $day->run($output, (int) $assignment);
+
+        $endTime = new DateTime(timezone: $tz);
+        $interval = $startTime->diff($endTime);
+        $timeDiff = "{$interval->format('%h')}Hours {$interval->format('%i')} Minutes {$interval->format('%s')} Seconds " . ((int)$interval->format('%f') / 1000) . " Milliseconds";
+        $output->writeln("<fg=cyan>{$endTime->format('Y-m-d H:i:s')}: Assignment finished took {$timeDiff}</>");
 
         return Command::SUCCESS;
     }
