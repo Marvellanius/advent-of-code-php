@@ -74,12 +74,7 @@ final class Day4 extends AbstractDay
     {
         $unmarked = array_diff($winner['flat'], $markedNumbers);
 
-        $sumUnmarked = array_reduce(
-            $unmarked,
-            static fn ($carry, $item) => $carry += $item
-        );
-
-        return end($markedNumbers) * $sumUnmarked;
+        return end($markedNumbers) * array_sum($unmarked);
     }
 
     private function determineFirstWinner(array $bingoCards, array $markedNumbers): ?array
