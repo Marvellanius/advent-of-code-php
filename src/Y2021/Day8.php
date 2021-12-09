@@ -27,97 +27,61 @@ final class Day8 extends AbstractDay
 
     public function run2(): Answer
     {
-        $input = array_map(static fn ($item) => trim(explode("|", $item)[1]), $this->getInputAsArray());
-        $input = array_map('str_split', explode(" ",implode(" ", $input)));
-        $uniqueSequences = [];
-        for ($i = 0; $i < count($input); $i++) {
-            sort($input[$i]);
-        }
+        $input = $this->getInputAsArray(true, "|");
+        $signals = array_map(static fn ($item) => trim($item[0]), $input);
 
-        $input = array_map(static fn ($item) => implode($item), $input);
-        $uniqueSequences = array_values(array_unique($input));
-
-        for ($i = 0; $i < count($uniqueSequences); $i++) {
-            switch (strlen($uniqueSequences[$i])) {
-                case 2:
-                    $foundNumbers[1] = $uniqueSequences[$i];
-                    break;
-                case 3:
-                    $foundNumbers[7] = $uniqueSequences[$i];
-                    break;
-                case 4:
-                    $foundNumbers[4] = $uniqueSequences[$i];
-                    break;
-                case 7:
-                    $foundNumbers[8] = $uniqueSequences[$i];
-                    break;
+        foreach ($signals as $key => $line) {
+            $sortedSegments = [];
+            foreach (explode(" ", $line) as $segments) {
+                $segmentArray = str_split($segments);
+                sort($segmentArray);
+                switch (count($segmentArray)) {
+                    case 2:
+                        $foundNumbers[$key][1] = $segmentArray;
+                        break;
+                    case 3:
+                        $foundNumbers[$key][7] = $segmentArray;
+                        break;
+                    case 4:
+                        $foundNumbers[$key][4] = $segmentArray;
+                        break;
+                    case 7:
+                        $foundNumbers[$key][8] = $segmentArray;
+                        break;
+                }
+                $sortedSegments[] = $segmentArray;
             }
-        }
-        $length5 = array_values(array_filter($uniqueSequences, static fn ($item) => strlen($item) === 5));
-        $length6 = array_values(array_filter($uniqueSequences, static fn ($item) => strlen($item) === 6));
 
-        for ($i = 0; $i < count($length6); $i++) {
-            if (str_contains($length6[$i],$foundNumbers[1])) {
-                $foundNumbers[9] = $length6[$i];
-            } else {
-                $foundNumbers[6] = $length6[$i];
+            $len6 = array_filter($sortedSegments, static fn ($item) => count($item) === 6);
+            $len5 = array_filter($sortedSegments, static fn ($item) => count($item) === 5);
+            // 6 is the only number from len(6) to be guaranteed to NOT INCLUDE both segments from 1
+            $foundNumbers[$key][6] = array_values(array_filter($len6, static fn ($item) => count(array_intersect($foundNumbers[$key][1], $item)) === 1))[0];
+            // 9 is the only number from len(6) that includes all segments of 4
+            $foundNumbers[$key][9] = array_values(array_filter($len6, static fn ($item) => count(array_intersect($foundNumbers[$key][4], $item)) === 4))[0];
+            // 0 is the only not found number in len(6)
+            $foundNumbers[$key][0] = array_values(array_filter($len6, static fn ($item) => ! in_array($item, [$foundNumbers[$key][6], $foundNumbers[$key][9]])))[0];
+            // 5 is the only number from len(5) guaranteed to only be 1 segment off of 6
+            $foundNumbers[$key][5] = array_values(array_filter($len5, static fn ($item) => count(array_diff($foundNumbers[$key][6], $item)) === 1))[0];
+            // 3 is the only number from len(5) to be guaranteed to INCLUDE both segments from 1
+            $foundNumbers[$key][3] = array_values(array_filter($len5, static fn ($item) => count(array_intersect($foundNumbers[$key][1], $item)) === 2))[0];
+            // 2 is the only not found number in len(5)
+            $foundNumbers[$key][2] = array_values(array_filter($len5, static fn ($item) => ! in_array($item, [$foundNumbers[$key][5], $foundNumbers[$key][3]])))[0];
+        }
+
+        $output = array_map(static fn ($item) => trim($item[1]), $input);
+        $decodedSegments = [];
+        foreach ($output as $key => $line) {
+            $sortedSegments = [];
+            foreach (explode(" ", $line) as $segments) {
+                $segmentArray = str_split($segments);
+                sort($segmentArray);
+                $sortedSegments[] = array_search($segmentArray, $foundNumbers[$key]);
             }
+
+            $decodedSegments[$key] = (int) implode("", $sortedSegments);
         }
 
-        foreach ($length5 as $segment) {
-            match (true) {
-                str_contains($segment, $foundNumbers[1]) => $foundNumbers[3] = $segment,
-                count(array_diff(str_split($foundNumbers[6]), str_split($segment))) === 1 => $foundNumbers[5] = $segment,
-                default => $foundNumbers[2] = $segment,
-            };
-        }
 
-        var_dump($foundNumbers);
-        die();
-        $input = array_map(static fn ($item) => explode(" ", trim($item[1])) , $input);
-        $input = array_map(static fn ($item) => str_split($item), $input);
-        $numbers = $this->deduceSegments($input);
-        $segmentLetters = [];
-//        $count = 0;
-//        foreach ($input as $digit) {
-//            foreach ($digit as $segment) {
-//                switch(strlen($segment)) {
-//                    case 2:
-//                        $segmentLetters[1] = $segment;
-//                        break;
-//                    case 3:
-//                        $segmentLetters[7] = $segment;
-//                        break;
-//                    case 4:
-//                        $segmentLetters[4] = $segment;
-//                        break;
-//                    case 5:
-//                        [$segmentLetters[2], $segmentLetters[3], $segmentLetters[5]] = $this->setSegmentsForLength(5);
-//                        break;
-//                    case 6:
-//                        [$segmentLetters[6], $segmentLetters[9]] = $this->setSegmentsForLength(6);
-//                        break;
-//                    case 7:
-//                        $segmentLetters[8] = $segment;
-//                        break;
-//                }
-//                if (in_array(strlen($segment), [2,3,4,7])) {
-//                    $count++;
-//                }
-//            }
-//        }
-
-        return new Answer((string) 20);
+        return new Answer((string) array_sum($decodedSegments));
     }
-
-    private function deduceSegments(array $input): array
-    {
-        $numbers = $input;
-//        for ($i = 0; $i < count($input); $i++) {
-//        }
-
-        var_dump($input);
-        return $numbers;
-    }
-
 }
