@@ -24,7 +24,7 @@ class Day10Test extends DayTestCase
     {
         return match($assignment) {
             1 => new Answer("26397"),
-            2 => new Answer("test answer not yet found")
+            2 => new Answer("288957")
         };
     }
 }
