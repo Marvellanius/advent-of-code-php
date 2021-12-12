@@ -88,6 +88,7 @@ class CreateAssignmentCommand extends Command
 
                 $created = $this->generateFile($target, $source, $year, $day);
                 if ($created !== false) {
+                    chmod($target, 0777);
                     $output->writeln("<info>File: {$target} created</info>");
                 } else {
                     $output->writeln("<info>File: {$target} could not be saved, check whether the parent folders exist</info>");
@@ -101,6 +102,7 @@ class CreateAssignmentCommand extends Command
 
                     if ($helper->ask($input, $output, $question)) {
                         $this->generateFile($target, $source, $year, $day);
+                        chmod($target, 0777);
                         $output->writeln("<fg=green;>File: {$target} overwritten!</>");
 
                         return Command::SUCCESS;
