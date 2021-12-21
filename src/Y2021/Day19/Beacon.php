@@ -18,28 +18,6 @@ final class Beacon
     ) {
     }
 
-    public function rotateX(bool $clockwise = true): void
-    {
-        $this->rotate('x', $clockwise);
-    }
-
-    public function rotateY(bool $clockwise = true): void
-    {
-        $this->rotate('y', $clockwise);
-    }
-
-    public function rotateZ(bool $clockwise = true): void
-    {
-        $this->rotate('z', $clockwise);
-    }
-    /*
-           |  X  |  Y   |  Z    |
-    Beacon | 300 |  200 |  100  |
-     X  90 | 300 | -100 |  200  |
-     X 180 | 300 | -200 | -100  |
-     X -90 | 300 |  100 | -200  |
-    */
-
     /**
      * Rotate a beacon's readout 90 degrees clockwise (true) or counterclockwise (false) along a given axis
      */
@@ -90,38 +68,6 @@ final class Beacon
             [$axis, $clockwise] = $rotation;
             $this->rotate($axis, $clockwise);
         }
-    }
-
-    /**
-    000
-    011 | 0 -1 1 | 0 1 -1 | 0 -1 -1 |
-    101 | -1 0 1 | 1 0 -1 | -1 0 -1 |
-    110 | -1 1 0 | 1 -1 0 | -1 -1 0 |
-    111 | -1 1 1 | -1 -1 1 | -1 1 -1 | 1 1 -1 | -1 -1 -1
-    */
-
-    // 001 : rotate over Z 90 deg: X becomes -Y and Y becomes X
-    // 010 : rotate over Y 90 deg: Z becomes -X and X becomes Z
-    // 100 : rotate over X 90 deg: Y becomes -Z and Z becomes Y
-
-
-
-    // 00-1 : rotate over Z -90 deg: X becomes Y and Y becomes -X
-    // 0-10 : rotate over Y -90 deg: Z becomes X and X becomes -Z
-    // -100 : rotate over X -90 deg: Y becomes Z and Z becomes -Y
-
-    // for 360deg X rotation:
-    // 90deg:  X==X, Y == -Z, Z == Y
-    // 180deg: X==X, Y == -Y, Z == -Z
-    // 270deg: X==X, Y == Z, Z == -Y
-
-    public function toArrayKeyed(): array
-    {
-        return [
-            'x' => $this->x,
-            'y' => $this->y,
-            'z' => $this->z,
-        ];
     }
 
     public function toArray(): array

@@ -6,9 +6,9 @@ namespace marvellanius\Advent\Y2021\Day19;
 
 final class Scanner
 {
-    private int $x;
-    private int $y;
-    private int $z;
+    private ?int $x = null;
+    private ?int $y = null;
+    private ?int $z = null;
 
     public static function fromArray(array $input): self
     {
@@ -23,6 +23,22 @@ final class Scanner
     ) {
     }
 
+    public function setPosition(int $x, int $y, int $z): void
+    {
+        $this->x = $x;
+        $this->y = $y;
+        $this->z = $z;
+    }
+
+    public function getPosition(): array
+    {
+        return [
+            'x' => $this->x,
+            'y' => $this->y,
+            'z' => $this->z
+        ];
+    }
+
     public function getBeacons(): array
     {
         return $this->beacons;
@@ -33,16 +49,6 @@ final class Scanner
         $this->beacons[] = $beacon;
     }
 
-    public function getMinimumForCoordinate(string $coordinate): int
-    {
-        return min(array_map(static fn (Beacon $beacon) => $beacon->$coordinate, $this->beacons));
-    }
-
-    public function getMaximumForCoordinate(string $coordinate): int
-    {
-        return max(array_map(static fn (Beacon $beacon) => $beacon->$coordinate, $this->beacons));
-    }
-
     public function getId(): int
     {
         return $this->id;
@@ -50,19 +56,22 @@ final class Scanner
 
     public function compare(Scanner $scanner): ?Scanner
     {
-        foreach ($this->beacons as $anchorBeacon) {
+        foreach ($this->getBeaconsAbsolute() as $anchorKey => $anchorBeacon) {
             // update other beacons to reflect new anchorpoint
             $relativeBeacons = $this->generateBeaconsRelativeTo($anchorBeacon);
             foreach ($scanner->getBeacons() as $targetBeacon) {
                 $targetRelativeBeacons = $scanner->generateBeaconsRelativeTo($targetBeacon);
                 $count = 0;
-                foreach ($targetRelativeBeacons as $beacon) {
-                    if (in_array($beacon, $relativeBeacons)) {
+                $foundBeaconMap = [];
+                foreach ($targetRelativeBeacons as $key => $beacon) {
+                    $found = array_search($beacon, $relativeBeacons);
+                    if ($found !== false) {
                         $count++;
+                        $foundBeaconMap += [$key => $found];
                     }
 
                     if ($count >= 12) {
-                        return $scanner;
+                        return $scanner->setPositionRelativeTo($this, $foundBeaconMap);
                     }
                 }
             }
@@ -70,31 +79,102 @@ final class Scanner
         return null;
     }
 
-    private function generateBeaconsRelativeTo(Beacon $anchorBeacon): array
+    public function getBeaconsRelativeTo(Scanner|Beacon $target, bool $array): array
     {
         $relativeBeacons = [];
 
         foreach ($this->beacons as $beacon) {
-            $relativeBeacons[] = Beacon::createFromCoordinates(
-                $beacon->x - $anchorBeacon->x,
-                $beacon->y - $anchorBeacon->y,
-                $beacon->z - $anchorBeacon->z
-            )->toArray();
+            if ($target instanceof self) {
+                $beacon = Beacon::createFromCoordinates(
+                    $beacon->x + $target->x,
+                    $beacon->y + $target->y,
+                    $beacon->z + $target->z
+                );
+            }
+
+            if ($target instanceof Beacon) {
+                $beacon = Beacon::createFromCoordinates(
+                    $beacon->x - $target->x,
+                    $beacon->y - $target->y,
+                    $beacon->z - $target->z
+                );
+            }
+
+            if ($array) {
+                $beacon = $beacon->toArray();
+            }
+            $relativeBeacons[] = $beacon;
         }
 
         return $relativeBeacons;
     }
 
-    // rotate X * 4, Y * 4, Z * 2
-    /*
-     * foreach (range(1,4) as $stepX) {
-     *  foreach (range(1,4) as $stepY) {
-     *   foreach (range(1,2) as $stepZ) {
-     *
-     *   }
-     *  }
-     * }
-     */
+    public function getBeaconsAbsolute(bool $array = false): array
+    {
+        $relativeBeacons = [];
+
+        foreach ($this->beacons as $beacon) {
+            $beacon = Beacon::createFromCoordinates(
+                $beacon->x - $this->x,
+                $beacon->y - $this->y,
+                $beacon->z - $this->z
+            );
+
+            if ($array) {
+                $beacon = $beacon->toArray();
+            }
+            $relativeBeacons[] = $beacon;
+        }
+
+        return $relativeBeacons;
+    }
+
+    private function setPositionRelativeTo(Scanner $scanner, array $beaconMap): Scanner
+    {
+        $position = [];
+        foreach ($beaconMap as $thisIndex => $scannerIndex) {
+            $thisBeacon = $this->getBeacons()[$thisIndex];
+            $scannerBeacon = $scanner->getBeacons()[$scannerIndex];
+            $checkPosition = [
+                $scannerBeacon->x - $thisBeacon->x,
+                $scannerBeacon->y - $thisBeacon->y,
+                $scannerBeacon->z - $thisBeacon->z,
+            ];
+
+            if (empty($position)) {
+                $position = $checkPosition;
+                continue;
+            }
+
+            if ($checkPosition === $position) {
+                $viaScannerPosition = $scanner->getPosition();
+                $this->x = $position[0] + $viaScannerPosition['x'];
+                $this->y = $position[1] + $viaScannerPosition['y'];
+                $this->z = $position[2] + $viaScannerPosition['z'];
+                break;
+            }
+        }
+
+        return $this;
+    }
+
+    private function generateBeaconsRelativeTo(Beacon $anchorBeacon): array
+    {
+        $relativeBeacons = [];
+
+        $x = $this->x ?? 0;
+        $y = $this->y ?? 0;
+        $z = $this->z ?? 0;
+        foreach ($this->beacons as $beacon) {
+            $relativeBeacons[] = Beacon::createFromCoordinates(
+                $beacon->x - $x - $anchorBeacon->x,
+                $beacon->y - $y - $anchorBeacon->y,
+                $beacon->z - $z - $anchorBeacon->z
+            )->toArray();
+        }
+
+        return $relativeBeacons;
+    }
 
     public function rotate(array $rotation): self
     {
@@ -106,49 +186,5 @@ final class Scanner
             $rotatedScanner->addBeacon($rotatedBeacon);
         }
         return $rotatedScanner;
-    }
-
-    public function rotateX(): self
-    {
-        $rotatedScanner = new self($this->id, []);
-        /** @var Beacon $beacon */
-        foreach ($this->beacons as $beacon) {
-            $rotatedBeacon = Beacon::createFromCoordinates(...$beacon->toArray());
-            $rotatedBeacon->rotateX();
-            $rotatedScanner->addBeacon($rotatedBeacon);
-        }
-        return $rotatedScanner;
-    }
-
-    public function rotateY(): self
-    {
-        $rotatedScanner = new self($this->id, []);
-        /** @var Beacon $beacon */
-        foreach ($this->beacons as $beacon) {
-            $rotatedBeacon = Beacon::createFromCoordinates(...$beacon->toArray());
-            $rotatedBeacon->rotateY();
-            $rotatedScanner->addBeacon($rotatedBeacon);
-        }
-        return $rotatedScanner;
-    }
-
-    public function rotateZ(): self
-    {
-        $rotatedScanner = new self($this->id, []);
-        /** @var Beacon $beacon */
-        foreach ($this->beacons as $beacon) {
-            $rotatedBeacon = Beacon::createFromCoordinates(...$beacon->toArray());
-            $rotatedBeacon->rotateZ();
-            $rotatedScanner->addBeacon($rotatedBeacon);
-        }
-        return $rotatedScanner;
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'beacons' => $this->beacons,
-        ];
     }
 }

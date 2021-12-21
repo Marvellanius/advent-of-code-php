@@ -7,46 +7,88 @@ use marvellanius\Advent\Answer;
 use marvellanius\Advent\AbstractDay;
 use marvellanius\Advent\Y2021\Day19\Beacon;
 use marvellanius\Advent\Y2021\Day19\Scanner;
-use marvellanius\Advent\Y2021\Day19\ScannerMap;
 
 final class Day19 extends AbstractDay
 {
     public function run1(): Answer
     {
-        $scanners = $this->getScanners();
-        $foundScanners = [0 => $scanners[0]];
+        [$originScanner, $scanners] = $this->getScanners();
+        $originScanner->setPosition(0, 0, 0);
 
-        // Voor iedere eerder gevonden scanner
-        foreach ($foundScanners as $reference) {
-            // Kijk of je een volgende scanner kan bepalen
-            foreach ($scanners as $target) {
-                $foundScanner = $reference->compare($target);
-                if ($foundScanner) {
-                    // Zo ja, sla de gevonden scanner op
-                    $foundScanners[$foundScanner->getId()] = $foundScanner;
-                    // En verwijder uit de lijst met te bepalen scanners
-                    unset($scanners[$foundScanner->getId()]);
-                }
-            }
+        $foundScanners = $this->determineScannerPositions($originScanner, $scanners);
+
+        $foundBeacons = [];
+        foreach ($foundScanners as $beaconList) {
+            $absoluteBeacons = $beaconList->getBeaconsRelativeTo($beaconList, false);
+            $implodedBeacons = array_map(static fn (Beacon $beacon) => implode(',', $beacon->toArray()), $absoluteBeacons);
+            $foundBeacons = [...$foundBeacons, ...$implodedBeacons];
         }
 
-        // GOAL: GET UNIQUE BEACONS
-        // HOW? Roelie knows
+        $uniqueBeacons = array_unique($foundBeacons);
 
-
-        return new Answer("0");
+        return new Answer((string) count($uniqueBeacons));
     }
 
     public function run2(): Answer
     {
-        return new Answer("Not implemented");
+        [$originScanner, $scanners] = $this->getScanners();
+        $originScanner->setPosition(0, 0, 0);
+
+        $foundScanners = $this->determineScannerPositions($originScanner, $scanners);
+
+        $maxDistance = 0;
+        foreach ($foundScanners as $origin) {
+            $originPosition = $origin->getPosition();
+            foreach ($foundScanners as $target) {
+                $targetPosition = $target->getPosition();
+                $diffX = abs($originPosition['x'] - $targetPosition['x']);
+                $diffY = abs($originPosition['y'] - $targetPosition['y']);
+                $diffZ = abs($originPosition['z'] - $targetPosition['z']);
+
+                $manhattan = $diffX + $diffY + $diffZ;
+
+                $maxDistance = max($maxDistance, $manhattan);
+            }
+        }
+
+        return new Answer((string) $maxDistance);
     }
 
-    /** @return Scanner[] */
+    private function determineScannerPositions(Scanner $originScanner, array $scanners): array
+    {
+        $foundScanners = [0 => $originScanner];
+
+        while (!empty($scanners)) {
+            // For every scanner with a concrete location
+            /** @var Scanner $reference */
+            foreach ($foundScanners as $reference) {
+                // See if you can determine the position of another scanner
+                /** @var Scanner $target */
+                foreach ($scanners as $target) {
+                    $foundScanner = $reference->compare($target);
+                    if ($foundScanner) {
+                        // If you succeeded, save the scanner
+                        $foundScanners[$foundScanner->getId()] = $foundScanner;
+                        // And remove it from the list of scanners that still need to be determined
+                        $foundScannerList = array_filter($scanners, static fn (Scanner $scanner) => $scanner->getId() === $foundScanner->getId());
+                        foreach ($foundScannerList as $key => $scanner) {
+                            unset($scanners[$key]);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $foundScanners;
+    }
+
+    /** @return array(Scanner, Scanner[]) */
     private function getScanners(): array
     {
         $input = $this->getInputAsArray();
 
+        $scanners = [];
         foreach ($input as $line) {
             $line = trim($line);
             if (str_contains($line, '--- scanner')) {
@@ -61,79 +103,60 @@ final class Day19 extends AbstractDay
             $scanner->addBeacon($this->convertLineToBeacon($line));
         }
 
-        $scanners = $this->generateOrientations($scanners);
+        $rotatedScanners = $this->generateOrientations(array_slice($scanners, 1));
 
-        return $scanners;
+        return [$scanners[0], $rotatedScanners];
     }
 
     private function generateOrientations(array $scanners): array
     {
         $rotatedScanners = [];
 
+        // each orientation is represented by rotations of (a multiple of) 90 degrees along a (set of) axes [x, y, z]
         $orientations = [
-            [0, 0, 1],
-            [0, 1, 0],
+            // pure x-rotations (also: heading)
             [1, 0, 0],
-
-            [0, 0, -1],
-            [0, -1, 0],
+            [2, 0, 0],
             [-1, 0, 0],
-
-            [0, 1, 1],
-            [0, -1, 1],
-            [0, 1, -1],
-            [0, -1, -1],
-
+            // y-based rotations (also: attitude)
+            [0, 1, 0],
             [1, 1, 0],
-            [1, -1, 0],
+            [2, 1, 0],
             [-1, 1, 0],
+            // counterclockwise y-rotations
+            [0, -1, 0],
+            [1, -1, 0],
+            [2, -1, 0],
             [-1, -1, 0],
-
+            // z-based rotations (also: bank)
+            [0, 0, 1],
             [1, 0, 1],
+            [2, 0, 1],
             [-1, 0, 1],
+            // 180-degree z-based rotations
+            [0, 0, 2],
+            [1, 0, 2],
+            [2, 0, 2],
+            [-1, 0, 2],
+            // counter-clockwise z-rotations
+            [0, 0, -1],
             [1, 0, -1],
+            [2, 0, -1],
             [-1, 0, -1],
-
-            [1, 1, 1],
-            [-1, 1, 1],
-            [-1, -1, 1],
-            [-1, 1, -1],
-            [1, 1, -1],
-            [1, -1, 1],
-            [-1, 1, -1],
-            [-1, -1, -1],
         ];
-
-        foreach ($orientations as $orientation) {
-            [$x, $y, $z] = $orientation;
-            $rotate = [];
-            foreach ($orientation as $axis) {
-                if ($axis === 0) {
-                    continue;
-                }
-                $clockwise = true;
-                if ($axis < 0) {
-                    $clockwise = false;
-                }
-                $rotate += [$axis, $clockwise];
-            }
-        }
 
         /** @var Scanner $scanner */
         foreach ($scanners as $scanner) {
 
-
             $rotatedScanners[] = $scanner;
-
-
             foreach ($orientations as $orientation) {
                 $rotate = [];
-                foreach ($orientation as $key => $axis) {
-                    if ($axis === 0) {
+                foreach ($orientation as $key => $amount) {
+                    if ($amount === 0) {
                         continue;
                     }
                     $clockwise = true;
-                    if ($axis < 0) {
+                    if ($amount < 0) {
                         $clockwise = false;
                     }
                     switch ($key) {
@@ -147,34 +170,13 @@ final class Day19 extends AbstractDay
                             $axis = 'z';
                             break;
                     }
-
+                    if ($amount === 2) {
+                        $rotate[] = [$axis, $clockwise];
+                    }
                     $rotate[] = [$axis, $clockwise];
                 }
                 $rotatedScanners[] = $scanner->rotate($rotate);
             }
-
-//            foreach (range(1,4) as $stepX) {
-//
-//                $rotatedScanner = $scanner->rotateX();
-//                $rotatedScanners[] = $rotatedScanner;
-//
-//                foreach (range(1, 4) as $stepY) {
-//
-//                    $rotatedScanner = $rotatedScanner->rotateY();
-//                    $rotatedScanners[] = $rotatedScanner;
-//
-//                    foreach (range(1, 4) as $stepZ) {
-//                        $rotatedScanner = $rotatedScanner->rotateZ();
-//                        $rotatedScanners[] = $rotatedScanner;
-//                    }
-//                }
-//            }
-//            $rotatedBeacons = [];
-//            foreach ($rotatedScanners as $rscanner) {
-//                $rotatedBeacons[] = array_map(static fn (Beacon $beacon) => $beacon->toArray(), $rscanner->getBeacons());
-//            }
-//            $rotatedBeacons = array_unique($rotatedBeacons);
-//            foreach ($rotatedBeacons as $bea)
         }
 
         return $rotatedScanners;
